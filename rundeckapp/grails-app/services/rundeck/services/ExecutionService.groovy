@@ -2143,6 +2143,7 @@ class ExecutionService implements ApplicationContextAware, StepExecutor, NodeSte
 
         // Abandon the transient ScheduledExecution entity instance.
         execution.scheduledExecution = null
+        execution.jobUuid = null
 
         if(execution.workflow){
             if(!execution.workflow.save(flush:true)){
@@ -2556,6 +2557,7 @@ class ExecutionService implements ApplicationContextAware, StepExecutor, NodeSte
         }
 
         execution.scheduledExecution=se
+        execution.jobUuid=se.uuid
 
         // If there is a preExecutionCheckError, put that error into the execution's extraMetadataMap.
         if(!beforeExecutionResult?.isSuccessful() && beforeExecutionResult?.isTriggeredByJobEvent(JobPreExecutionEvent)) {
