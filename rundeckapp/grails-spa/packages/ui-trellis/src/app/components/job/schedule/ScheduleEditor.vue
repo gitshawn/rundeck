@@ -68,7 +68,7 @@
                                 class="form-control"
                                 style="width:auto;"
                               >
-                                <option v-for="hour in this.hours" :key="hour" v-bind:value="hour">{{hour}}</option>
+                                <option v-for="hour in hours" :key="hour" v-bind:value="hour">{{hour}}</option>
                               </select>
                               :
                               <label for="minuteNumber" aria-hidden="false" style="display: none;">Minute</label>
@@ -79,7 +79,7 @@
                                 class="form-control"
                                 style="width:auto;"
                               >
-                                <option v-for="minute in this.minutes" :key="minute" v-bind:value="minute">{{minute}}</option>
+                                <option v-for="minute in minutes" :key="minute" v-bind:value="minute">{{minute}}</option>
                               </select>
                             </div>
                             <div class="col-sm-4">
@@ -92,7 +92,8 @@
                                   v-model="modelData.everyDayOfWeek"
                                 >
                                 <label for="everyDay">Every Day</label>
-                                <div v-if="!modelData.everyDayOfWeek" class="_defaultInput checkbox" v-for="(day,n) in days">
+                                  <template v-if="!modelData.everyDayOfWeek">
+                                <div class="_defaultInput checkbox" v-for="(day,n) in days">
                                   <input
                                     :id="'dayCheckbox_'+n"
                                     type="checkbox"
@@ -101,6 +102,7 @@
                                   >
                                   <label :for="'dayCheckbox_'+n">{{day.name}}</label>
                                 </div>
+                                  </template>
                                 <input type="hidden" name="selectedDaysOfWeek" :value="modelData.selectedDays.join(',')" >
                               </div>
                             </div>
@@ -114,7 +116,8 @@
                                   v-model="modelData.allMonths"
                                 >
                                 <label for="everyMonth">Every Month</label>
-                                <div v-if="!modelData.allMonths" class="_defaultInput checkbox" v-for="(month,n) in months">
+                                <template v-if="!modelData.allMonths">
+                                <div class="_defaultInput checkbox" v-for="(month,n) in months">
                                   <input
                                     :id="'monthCheckbox_'+n"
                                     type="checkbox"
@@ -123,6 +126,7 @@
                                   >
                                   <label :for="'monthCheckbox_'+n">{{month.name}}</label>
                                 </div>
+                                </template>
                               </div>
                               <input type="hidden" name="selectedMonths" :value="modelData.selectedMonths.join(',')" >
                             </div>
@@ -155,10 +159,8 @@
                                   <span class="text-muted" style="font-style: italic" v-if="crontabHint">{{crontabHint}}</span>
                                 </div>
                                 <div class="col-sm-6">
-                                  <template>
                                     <div v-html="errors">
                                     </div>
-                                  </template>
                                 </div>
                               </div>
                               <div class="row">
@@ -277,85 +279,80 @@
       </div>
 </div>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import axios from 'axios'
-import InlineValidationErrors from '../../form/InlineValidationErrors.vue'
 import UiSocket from '../../../../library/components/utils/UiSocket.vue'
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {computed, onBeforeMount, onMounted, ref, watch} from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import {
   getDays,
   getMonths,
   getSimpleDecomposition,
 } from "./services/scheduleDefinition"
+import { EventBus } from "../../../../library";
 
+const props = withDefaults(defineProps<{
+    modelValue: any
+    eventBus: typeof EventBus
+    useCrontabString?: boolean
+}>(),{
+    useCrontabString: false
+})
 
-@Component({components: {InlineValidationErrors, UiSocket}})
-export default class ScheduleEditor extends Vue {
-  @Prop({required: true})
-  value: any
+  const labelColClass = 'col-sm-2 control-label'
+  const fieldColSize = 'col-sm-10'
 
-  @Prop({required: true})
-  eventBus!: Vue
+  const modelData = ref<any>({})
 
-  @Prop({required: false, default: false})
-  useCrontabString!: boolean
+  const name = ref<string>("")
+  const errors = ref<string>("")
+  const hours = ref<string[]>([])
+  const minutes = ref<string[]>([])
+  const days = ref([])
+  const months = ref([])
+  const crontabpos = ref<number>(-1)
+  const crontabInput = ref(null)
 
-  labelColClass = 'col-sm-2 control-label'
-  fieldColSize = 'col-sm-10'
-
-  modelData: any = {}
-
-  name: string = ""
-  errors: string = ""
-  hours: any = []
-  minutes:any = []
-  days:any = []
-  months:any = []
-  crontabpos:number = -1
-
-  async beforeMount() {
-    var hours = <any>[]
-    var minutes = <any>[]
-    let _win = window as any
-    _win.jQuery.each([...Array(24).keys()], function(index:any, value:any){
-      hours.push(value< 10? '0'+value.toString(): value.toString())
-    });
-    _win.jQuery.each([...Array(60).keys()], function(index:any, value:any){
-      minutes.push(value< 10? '0'+value.toString(): value.toString())
-    });
-    this.hours = hours;
-    this.minutes = minutes;
-    this.days = getDays();
-    this.months = getMonths();
-  }
-  async mounted() {
-    this.modelData = Object.assign({
+  onBeforeMount(async () => {
+    var _hours: string[] = []
+    var _minutes: string[] = []
+    for(let x = 0; x < 24; x++) {
+        _hours.push(x< 10? '0'+x.toString(): x.toString())
+    }
+    for(let x = 0; x < 60; x++) {
+        _minutes.push(x< 10? '0'+x.toString(): x.toString())
+    }
+    hours.value = _hours;
+    minutes.value = _minutes;
+    days.value = getDays();
+    months.value = getMonths();
+  })
+  onMounted(() => {
+    modelData.value = Object.assign({
       selectedDays: [],
       selectedMonths: [],
-      useCrontabString: this.useCrontabString
-    }, this.value)
+      useCrontabString: props.useCrontabString
+    }, props.modelValue)
     
-    if(this.modelData.useCrontabString)
-      this.showCronExpression()
+    if(modelData.value.useCrontabString)
+      showCronExpression()
     else
-      this.showSimpleCron()
+      showSimpleCron()
+  })
+
+  function loadScheduleIntoSimpleTab (decomposedSchedule:any){
+    modelData.value.hourSelected = decomposedSchedule.hour;
+    modelData.value.minuteSelected = decomposedSchedule.minute;
+    modelData.value.selectedDays = decomposedSchedule.days.length <= 7 ? decomposedSchedule.days : [];
+    modelData.value.selectedMonths = decomposedSchedule.months.length <= 12 ? decomposedSchedule.months : [];
+    modelData.value.everyDayOfWeek = decomposedSchedule.days.length === 7;
+    modelData.value.allMonths = decomposedSchedule.months.length === 12;
   }
 
-  loadScheduleIntoSimpleTab (decomposedSchedule:any){
-    this.modelData.hourSelected = decomposedSchedule.hour;
-    this.modelData.minuteSelected = decomposedSchedule.minute;
-    this.modelData.selectedDays = decomposedSchedule.days.length <= 7 ? decomposedSchedule.days : [];
-    this.modelData.selectedMonths = decomposedSchedule.months.length <= 12 ? decomposedSchedule.months : [];
-    this.modelData.everyDayOfWeek = decomposedSchedule.days.length === 7;
-    this.modelData.allMonths = decomposedSchedule.months.length === 12;
-  }
-
-  showSimpleCron(){
-    if(this.modelData.crontabString) {
-      let cronComponents = this.modelData.crontabString.split(" ");
+  function showSimpleCron(){
+    if(modelData.value.crontabString) {
+      let cronComponents = modelData.value.crontabString.split(" ");
 
       let decomposedSchedule = getSimpleDecomposition(
         cronComponents[2],
@@ -363,56 +360,59 @@ export default class ScheduleEditor extends Vue {
         cronComponents[5],
         cronComponents[4],
       );
-      this.loadScheduleIntoSimpleTab(decomposedSchedule);
+      loadScheduleIntoSimpleTab(decomposedSchedule);
     }
-    this.modelData.useCrontabString = false;
+    modelData.value.useCrontabString = false;
   }
-  showCronExpression(){
-    this.modelData.useCrontabString = true;
+  function showCronExpression(){
+    modelData.value.useCrontabString = true;
   }
-  async validateCronExpression(){
-    this.errors = ''
+  function validateCronExpression(){
+    errors.value = ''
     axios({
       method: "post",
       headers: {
       },
       params: {
         project: window._rundeck.projectName,
-        crontabString: this.modelData.crontabString
+        crontabString: modelData.value.crontabString
       },
       url: new URL(`scheduledExecution/checkCrontab`, window._rundeck.rdBase).toString(),
       withCredentials: true
     }).then(response => {
-      this.errors = response.request.response
+      errors.value = response.request.response
     })
   }
-  @Watch('modelData', {deep: true})
-  wasChanged() {
-    this.$emit('input', this.modelData)
+  const emit = defineEmits(['update:modelValue'])
+
+  watch(modelData,() =>{
+      emit('update:modelValue', modelData.value)
+  }, {deep:true})
+
+  function crontabBlur(){
+    validateCronExpression()
+    crontabpos.value=-1
   }
-  crontabBlur(){
-    this.validateCronExpression()
-    this.crontabpos=-1
-  }
-  updateCrontabPosition(){
-    this.crontabpos = this.getCaretPos(this.$refs['crontabInput']);
+  function updateCrontabPosition(){
+    crontabpos.value = getCaretPos(crontabInput.value);
   }
 
-  get crontabHint(){
-    return this.modelData.useCrontabString ?
-      this.getHintText(this.crontabpos, this.modelData.crontabString)
+  const crontabHint = computed(() =>{
+    return modelData.value.useCrontabString ?
+      getHintText(crontabpos.value, modelData.value.crontabString)
       : ''
-  }
+  })
 
   /**
    * Get crontab position hint string
    * @param pos caret position within string
    * @param text string
    */
-  getHintText(pos:number, text:string){
-    let c = this.getCrontabSection(pos,text)
+  function getHintText(pos:number, text:string){
+    let c = getCrontabSection(pos,text)
+    const { t } = useI18n()
     if (c >= 0 && c <= 6) {
-      return this.$t(`cron.section.${c}`)
+      return t(`cron.section.${c}`)
     }
     return ''
   }
@@ -422,7 +422,7 @@ export default class ScheduleEditor extends Vue {
    * @param pos caret position within string
    * @param text string
    */
-  getCrontabSection(pos:number, text:string):number{
+  function getCrontabSection(pos:number, text:string):number{
     if (pos < 0) {
       return -1
     }
@@ -440,7 +440,7 @@ export default class ScheduleEditor extends Vue {
    * nb: there's probably a better/modern way to do this, this is old code
    * @param el input element
    */
-  getCaretPos(el:any) {
+ function getCaretPos(el:any) {
     let rng, ii = -1;
     if (typeof el.selectionStart == "number") {
       return  el.selectionStart;
@@ -454,5 +454,5 @@ export default class ScheduleEditor extends Vue {
     }
     return ii;
   }
-}
+
 </script>

@@ -11,11 +11,12 @@
 
 <script lang="ts">
 import KeyStorageView from "./KeyStorageView.vue";
-import KeyStorageEdit from "./KeyStorageEdit.vue";
-import Vue from "vue";
+import KeyStorageEdit, { UploadSetting } from "./KeyStorageEdit.vue";
+import {defineComponent} from "vue";
+import { getRundeckContext } from "../../index"
 import UiSocket from "../utils/UiSocket.vue";
 
-export default Vue.extend({
+export default defineComponent({
   name: "KeyStoragePage",
   components: {UiSocket, KeyStorageEdit, KeyStorageView},
   props: [
@@ -37,10 +38,10 @@ export default Vue.extend({
         default: true
       },
       configPrefix: '',
-      bus: new Vue(),
+      bus: getRundeckContext().eventBus,
       modalEdit: false,
       path: '',
-      uploadSetting: {},
+      uploadSetting: {} as UploadSetting,
       ready: false,
       selectedKey: {}
     }
@@ -54,7 +55,7 @@ export default Vue.extend({
     handleCancelEditing() {
       this.modalEdit = false
     },
-    openEditor(uploadSetting: {}) {
+    openEditor(uploadSetting: UploadSetting) {
       this.uploadSetting = uploadSetting
       this.modalEdit = true
     },

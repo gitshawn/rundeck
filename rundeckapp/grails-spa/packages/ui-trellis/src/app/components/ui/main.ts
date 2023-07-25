@@ -1,12 +1,17 @@
-import Vue from 'vue'
+import {createApp} from 'vue'
+import * as uiv from 'uiv'
+import VueCookies from "vue-cookies"
 
-import UiSocket from '../../../library/components/utils/UiSocket.vue'
 import {getRundeckContext} from '../../../library'
 import { UiMessage } from '../../../library/stores/UIStore'
+import UiSocket from "../../../library/components/utils/UiSocket.vue";
+import {initI18n, updateLocaleMessages} from "../../utilities/i18n";
 
 const rootStore = getRundeckContext().rootStore
 const EventBus = getRundeckContext().eventBus
-window.addEventListener('DOMContentLoaded', (evt => {
+let updateI18n: Function | null = null
+
+window.addEventListener('DOMContentLoaded', (() => {
   const elm = document.getElementsByClassName('vue-ui-socket')
   for (const elmElement of elm) {
     const eventName = elmElement.getAttribute("vue-socket-on")
@@ -31,8 +36,8 @@ function initUiComponentsOnEvent(evt:Event){
 }
 
 function initUiComponents(elmElement:any) {
-    const vue = new Vue({
-      el: elmElement,
+  const i18n = initI18n()
+    const vue = createApp({
       components: {UiSocket},
       data() {
         return {
@@ -40,17 +45,28 @@ function initUiComponents(elmElement:any) {
         }
       },
       provide: {
-        rootStore
+        rootStore,
       }
     })
+    vue.use(VueCookies)
+    vue.use(i18n)
+    vue.use(uiv)
+    vue.mount(elmElement)
+    updateI18n = updateLocaleMessages(i18n)
 }
 
 function applyUiMessages(){
   const messages = rootStore.ui.getUiMessages()
+  const newMessages = messages.reduce((acc:any, message:UiMessage) => message ? ({...acc, ...message}) : acc, {})
   messages.forEach((message:UiMessage) => {
     if(message){
       let _w:any = window
       Object.assign((_w.Messages), message)
     }
   })
+  const locale = window._rundeck.locale || 'en_US'
+  const lang = window._rundeck.language || 'en'
+  if (updateI18n) {
+    updateI18n(locale || lang, newMessages)
+  }
 }

@@ -97,10 +97,10 @@
     var confirm = new PageConfirm(message('page.unsaved.changes'),{
         skipbehavior:true,
         setNeedsConfirm(){
-            window._rundeck.eventBus.$emit('page-modified','Edit Page')
+            window._rundeck.eventBus.emit('page-modified','Edit Page')
         },
         clearNeedConfirm(){
-            window._rundeck.eventBus.$emit('page-reset','*')
+            window._rundeck.eventBus.emit('page-reset','*')
         }
     });
     function init(){

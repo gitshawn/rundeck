@@ -9,12 +9,12 @@
 </template>
 
 <script lang="ts">
-import Vue, {PropType} from 'vue'
+import {defineComponent, PropType} from 'vue'
 
 import {ServerInfo} from '../../stores/System'
 import { RundeckVersion } from '../../utilities/RundeckVersion'
 
-export default Vue.extend({
+export default defineComponent({
     props: {
         glyphicon: String,
         uuid: String,
