@@ -88,8 +88,8 @@ export default defineComponent({
   },
   props:{
     value:{
-      type: Object as PropType<any>,
-      required:true
+      type: [Boolean, String],
+      required: false
     },
     prop:{
       type:Object,required:true

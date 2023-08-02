@@ -155,7 +155,8 @@ export default defineComponent({
   props: {
     storageFilter: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
     },
     uploadSetting: {
       type: Object as PropType<UploadSetting>,

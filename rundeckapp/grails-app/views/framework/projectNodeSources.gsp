@@ -175,13 +175,13 @@
 
 
 
-                        <div class="tab-pane ${writeableSources ? 'active' : ''} project-plugin-config-vue"
+                        <div class="tab-pane ${writeableSources ? 'active' : ''}"
                             id="node_sources_writeable">
 
                           <div class="help-block">
                             <g:message code="modifiable.node.sources.will.appear.here" />
                           </div>
-
+                          <div class="project-plugin-config-vue">
                           <writeable-project-node-sources :event-bus="EventBus" class="list-group" item-css="list-group-item">
                             <template v-slot:empty>
                               <div class="list-group-item">
@@ -189,6 +189,7 @@
                               </div>
                             </template>
                           </writeable-project-node-sources>
+                          </div>
 
                           <div class="well well-sm">
                             <g:message code="use.the.node.sources.tab.1" />
@@ -202,9 +203,10 @@
                         </div>
 
 
-                        <div class="tab-pane ${writeableSources ? '' : 'active'} project-plugin-config-vue" id="node_sources">
+                        <div class="tab-pane ${writeableSources ? '' : 'active'}" id="node_sources">
 
 
+                          <div class="project-plugin-config-vue">
                               <project-node-sources-config
                                                           help="${enc(attr: g.message(code: "domain.Project.edit.ResourceModelSource.explanation"))}"
                                                           :edit-mode="true"
@@ -218,11 +220,13 @@
                               <project-node-sources-help :event-bus="EventBus">
 
                               </project-node-sources-help>
+                          </div>
                         </div>
 
 
                       <feature:enabled name="enhancedNodes">
-                        <div class="tab-pane project-plugin-config-vue" id="node_plugins">
+                        <div class="tab-pane" id="node_plugins">
+                          <div class="project-plugin-config-vue">
 
                               <project-plugin-config
                                                     config-prefix="nodes.plugin"
@@ -236,6 +240,7 @@
                                                     :edit-mode="true">
 
                               </project-plugin-config>
+                          </div>
 
                         </div>
                       </feature:enabled>

@@ -188,9 +188,9 @@
 
 <script lang="ts">
 import axios from "axios";
-import { defineComponent } from "vue";
+import {defineComponent, PropType} from "vue";
 import { Notification } from "uiv";
-import { getRundeckContext, RundeckContext } from "../../../library";
+import {EventBus, getRundeckContext, RundeckContext} from "../../../library";
 import Expandable from "../../../library/components/utils/Expandable.vue";
 import PluginInfo from "../../../library/components/plugins/PluginInfo.vue";
 import PluginConfig from "../../../library/components/plugins/pluginConfig.vue";
@@ -270,7 +270,7 @@ export default defineComponent({
     additionalProps: { required: false, type: Object },
     help: { required: false, type: String },
     editButtonText: { required: false, type: String },
-    "eventBus": { "type": Vue, "required": false }
+    eventBus: { type: Object as PropType<typeof EventBus>, "required": false }
   },
   methods: {
     notifyError(msg: string, args: any[]) {
@@ -548,7 +548,7 @@ export default defineComponent({
         }).catch(error => console.error(error));
     }
 
-    this.eventBus.$on('resource-model-extra-config', this.setExtraConfig)
+    this.eventBus.on('resource-model-extra-config', this.setExtraConfig)
   }
 });
 </script>

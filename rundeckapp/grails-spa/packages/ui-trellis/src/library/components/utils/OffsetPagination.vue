@@ -14,14 +14,14 @@
   - limitations under the License.
   -->
 <template>
-  <pagination v-model="currentPage" :total-pages="totalPages" @change="changePage" :disabled="disabled" v-if="pagination.total">
+  <Pagination v-model="currentPage" :total-pages="totalPages" @change="changePage" :disabled="disabled" v-if="pagination.total">
     <template v-if="showPrefix" v-slot:prefix>
     <span>
       <span class="text-info">{{pagination.offset + 1}}-{{pagination.offset + pagination.max}}</span>
       <span class="text-muted">of {{pagination.total}}</span>
     </span>
     </template>
-  </pagination>
+  </Pagination>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'

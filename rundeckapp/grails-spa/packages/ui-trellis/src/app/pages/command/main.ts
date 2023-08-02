@@ -12,7 +12,7 @@ eventBus.on('ko-adhoc-running', (data: any) => {
 
     const template = `\
     <LogViewer
-        v-if="this.$el.parentNode.display != 'none'"
+        v-if="displayViewer"
         executionId="${data.id}"
         :showSettings="showSettings"
         :config="config"
@@ -24,6 +24,11 @@ eventBus.on('ko-adhoc-running', (data: any) => {
         name: 'Command',
         components: {LogViewer},
         template: template,
+        computed: {
+            displayViewer() {
+                return this.$el?.parentNode.display != 'none'
+            }
+        },
         provide: {
             rootStore
         }
